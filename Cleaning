@@ -1,0 +1,110 @@
+-- DATA Cleaning
+
+-- 1. Remove Duplicates
+-- 2. Standardize the data
+-- 3. Null Values or blank values
+-- 4. Remove any columns
+
+SELECT *
+FROM car_sales;
+
+CREATE TABLE car_staging
+LIKE car_sales;
+
+INSERT car_staging
+SELECT *
+FROM car_sales;
+
+SELECT *,
+ROW_NUMBER() OVER(
+PARTITION BY 'date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', Phone) as row_num
+FROM car_staging;
+
+WITH duplicate_cte AS
+(
+SELECT *,
+ROW_NUMBER() OVER(
+PARTITION BY 'Date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', 
+Phone, Dealer_Name, Car_id) as row_num
+FROM car_staging
+)
+SELECT *
+FROM duplicate_cte
+WHERE row_num >1;
+
+-- No Duplicates with quick view
+
+
+-- Creating staging 2 database
+-- Revised colunm name with "space" to underscore
+-- Special Characters Removed
+-- Avoid Reseved Keywords
+-- Consistent Snake_case
+
+CREATE TABLE `car_staging` (
+  `car_id` TEXT,
+  `sale_date` TEXT COMMENT 'Renamed from "Date" (reserved keyword)', -- Avoid reserved keyword "DATE"
+  `customer_name` TEXT,
+  `gender` TEXT,
+  `annual_income` INT DEFAULT NULL,
+  `dealer_name` TEXT,
+  `company` TEXT,
+  `model` TEXT,
+  `engine` TEXT,
+  `transmission` TEXT,
+  `color` TEXT,
+  `price_usd` INT DEFAULT NULL COMMENT 'Renamed from "Price ($)"', -- Remove special characters
+  `dealer_no` TEXT,
+  `body_style` TEXT,
+  `phone` INT DEFAULT NULL,
+  `dealer_region` TEXT,
+  `row_num` INT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+SELECT * 
+FROM car_staging;
+
+INSERT INTO car_staging
+SELECT *,
+ROW_NUMBER() OVER(
+PARTITION BY 'Date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', 
+Phone, Dealer_Name, Car_id) as row_num
+FROM car_sales;
+
+-- Removed Duplicates by removing row number > 1
+
+SELECT * 
+FROM car_staging
+WHERE row_num >1;
+
+DELETE 
+FROM car_staging
+WHERE row_num >1;
+
+-- Standardizing data
+
+SELECT DISTINCT (TRIM(company))
+FROM car_staging;
+
+SELECT company, TRIM(company)
+FROM layoffs_staging2;
+
+SELECT company, TRIM(company)
+FROM car_staging;
+
+UPDATE car_staging
+SET company = TRIM(company);
+
+SELECT * 
+FROM car_staging;
+
+-- Remove Any Colunms
+
+SELECT *
+FROM layoffs_staging2;
+
+ALTER TABLE car_staging
+DROP COLUMN row_num;
+
+SELECT * 
+FROM car_staging;
