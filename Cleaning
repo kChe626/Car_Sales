@@ -32,7 +32,6 @@ WHERE row_num >1;
 
 -- No Duplicates with quick view
 
-
 -- Creating staging 2 database
 -- Revised colunm name with "space" to underscore
 -- Special Characters Removed
@@ -82,10 +81,71 @@ WHERE row_num >1;
 -- Remove Any Colunms
 
 SELECT *
-FROM layoffs_staging2;
+FROM car_staging;
 
 ALTER TABLE car_staging
 DROP COLUMN row_num;
 
+-- Format date string to proper DATE type
+
 SELECT * 
 FROM car_staging;
+
+SELECT 
+  COLUMN_NAME, 
+  DATA_TYPE 
+FROM INFORMATION_SCHEMA.COLUMNS 
+WHERE TABLE_NAME = 'car_staging' 
+  AND COLUMN_NAME = 'sale_date';
+  
+SELECT sale_date
+FROM car_staging
+WHERE STR_TO_DATE(sale_date, '%m/%d/%Y') IS NULL
+  AND sale_date IS NOT NULL;
+  
+SELECT sale_date
+FROM car_staging
+WHERE DATE(sale_date) IS NULL
+  AND sale_date IS NOT NULL;
+  
+ALTER TABLE car_staging 
+  ADD COLUMN sale_date_temp DATE;
+  
+UPDATE car_staging
+SET sale_date_temp = STR_TO_DATE(sale_date, '%m/%d/%Y');
+
+ALTER TABLE car_staging DROP COLUMN sale_date;
+
+ALTER TABLE car_staging 
+CHANGE COLUMN sale_date_temp sale_date DATE;
+
+-- Break Dates into Separate Columns
+
+ALTER TABLE car_staging
+ADD COLUMN sale_month INT,
+ADD COLUMN sale_day INT,
+ADD COLUMN sale_year INT;
+
+UPDATE car_staging
+SET 
+  sale_year = YEAR(sale_date),
+  sale_month = MONTH(sale_date),
+  sale_day = DAY(sale_date);
+  
+SELECT 
+  sale_date, sale_year, sale_month, sale_day 
+FROM car_staging 
+LIMIT 10;
+
+SELECT * 
+FROM car_staging;
+
+-- Replace unwanted special charachers from column
+
+UPDATE car_staging
+SET engine = REPLACE(engine, 'Ã‚Â', ' ')
+WHERE engine LIKE '%Ã‚Â%';
+
+SELECT DISTINCT engine
+FROM car_staging
+WHERE engine LIKE '%Overhead Camshaft%';
