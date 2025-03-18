@@ -1,0 +1,66 @@
+-- Objective 1: Exploring the Data
+
+-- Count the number of car sales by the company
+
+SELECT company,
+	COUNT(*) as company_sales
+FROM car_staging
+GROUP BY company
+ORDER BY company_sales DESC;
+
+-- Find the most common body style customer have bought
+
+SELECT company,body_style
+FROM 
+(
+SELECT company, body_style,
+	COUNT(*),
+	RANK() OVER(PARTITION BY body_style 
+	ORDER BY COUNT(*) DESC) AS ranking
+FROM car_staging
+GROUP BY company, body_style
+) as t1
+WHERE ranking = 1;
+
+-- List all BMW sales in a specific year (e.g., 2023)
+SELECT * 
+FROM car_staging
+WHERE company = 'BMW'
+AND
+sale_year = 2023;
+
+-- What are the top 5 dealer region with the most sales?
+
+SELECT dealer_region,
+COUNT(car_id) as total_sales
+FROM car_staging
+GROUP BY 1
+ORDER BY total_sales
+LIMIT 5;
+
+--- Identify the highest paid car sold
+
+SELECT company, model, price_usd
+FROM car_staging
+WHERE price_usd = (SELECT MAX(price_usd) 
+FROM car_staging );
+
+-- What is the most sold car model?
+SELECT company, model,
+COUNT(*) AS total_sales
+FROM car_staging
+GROUP BY company, model
+ORDER BY total_sales DESC;
+
+-- Highest cars sold in price rang 15,000 USD to 40,000 USD
+
+SELECT 
+    company, 
+    model, 
+    COUNT(*) AS total_sales
+FROM car_staging
+WHERE price_usd BETWEEN 15000 AND 40000
+GROUP BY company, model
+ORDER BY total_sales DESC;
+        
+--------
