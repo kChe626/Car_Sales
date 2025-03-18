@@ -1,219 +1,47 @@
-# Car_Sales
+## Dataset Description
 
--- DATA Cleaning
+## Car Sales Data Cleaning Summary
 
--- 1. Check for Duplicates
--- 2. Revsed Colunm Names
+1. Data Deduplication
 
-SELECT *
-FROM car_sales;
+    Created staging tables (car_staging) to preserve raw data integrity.
 
-CREATE TABLE car_staging
-LIKE car_sales;
+    Used ROW_NUMBER() with PARTITION BY on composite keys (date, customer, dealer, etc.) to identify duplicates.
 
-INSERT car_staging
-SELECT *
-FROM car_sales;
+    Deleted records with row_num > 1 to ensure uniqueness.
 
-SELECT *,
-ROW_NUMBER() OVER(
-PARTITION BY 'date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', Phone) as row_num
-FROM car_staging;
+2. Column Standardization
 
-WITH duplicate_cte AS
-(
-SELECT *,
-ROW_NUMBER() OVER(
-PARTITION BY 'Date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', 
-Phone, Dealer_Name, Car_id) as row_num
-FROM car_staging
-)
-SELECT *
-FROM duplicate_cte
-WHERE row_num >1;
+    Renamed columns to avoid reserved keywords (Date → sale_date) and special characters (Price ($) → price_usd).
 
--- No Duplicates with quick view
+    Applied snake_case naming consistently (e.g., Customer Name → customer_name).
 
--- Creating staging 2 database
--- Revised colunm name with "space" to underscore
--- Special Characters Removed
--- Avoid Reseved Keywords
--- Consistent Snake_case
+3. Date Formatting
 
-CREATE TABLE `car_staging` (
-  `car_id` TEXT,
-  `sale_date` TEXT COMMENT 'Renamed from "Date" (reserved keyword)', -- Avoid reserved keyword "DATE"
-  `customer_name` TEXT,
-  `gender` TEXT,
-  `annual_income` INT DEFAULT NULL,
-  `dealer_name` TEXT,
-  `company` TEXT,
-  `model` TEXT,
-  `engine` TEXT,
-  `transmission` TEXT,
-  `color` TEXT,
-  `price_usd` INT DEFAULT NULL COMMENT 'Renamed from "Price ($)"', -- Remove special characters
-  `dealer_no` TEXT,
-  `body_style` TEXT,
-  `phone` INT DEFAULT NULL,
-  `dealer_region` TEXT,
-  `row_num` INT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+    Converted sale_date from text to DATE type using STR_TO_DATE('%m/%d/%Y').
 
-SELECT * 
-FROM car_staging;
+    Split sale_date into separate sale_year, sale_month, and sale_day columns for granular time-based analysis.
 
-INSERT INTO car_staging
-SELECT *,
-ROW_NUMBER() OVER(
-PARTITION BY 'Date', 'Customer Name', 'Annual Income', Dealer_Name, 'date', 
-Phone, Dealer_Name, Car_id) as row_num
-FROM car_sales;
+4. Data Cleaning
 
--- Removed Duplicates by removing row number > 1
+    Removed unwanted special characters (e.g., Ã‚Â) from the engine column using REPLACE().
 
-SELECT * 
-FROM car_staging
-WHERE row_num >1;
+    Validated data types with INFORMATION_SCHEMA.COLUMNS.
 
-DELETE 
-FROM car_staging
-WHERE row_num >1;
+5. Structural Cleanup
 
--- Remove Any Colunms
+    Dropped temporary columns like row_num post-deduplication.
 
-SELECT *
-FROM car_staging;
+**Key SQL Techniques Used**
 
-ALTER TABLE car_staging
-DROP COLUMN row_num;
+DDL/DML: CREATE TABLE, ALTER TABLE (add/drop columns), DELETE.
+ 
+Window Functions: ROW_NUMBER() for duplicate detection.
 
--- Format date string to proper DATE type
+Date Functions: STR_TO_DATE(), YEAR(), MONTH(), DAY().
 
-SELECT * 
-FROM car_staging;
+String Manipulation: REPLACE(), LIKE for text cleanup.
 
-SELECT 
-  COLUMN_NAME, 
-  DATA_TYPE 
-FROM INFORMATION_SCHEMA.COLUMNS 
-WHERE TABLE_NAME = 'car_staging' 
-  AND COLUMN_NAME = 'sale_date';
-  
-SELECT sale_date
-FROM car_staging
-WHERE STR_TO_DATE(sale_date, '%m/%d/%Y') IS NULL
-  AND sale_date IS NOT NULL;
-  
-SELECT sale_date
-FROM car_staging
-WHERE DATE(sale_date) IS NULL
-  AND sale_date IS NOT NULL;
-  
-ALTER TABLE car_staging 
-  ADD COLUMN sale_date_temp DATE;
-  
-UPDATE car_staging
-SET sale_date_temp = STR_TO_DATE(sale_date, '%m/%d/%Y');
+## Outcome: 
 
-ALTER TABLE car_staging DROP COLUMN sale_date;
-
-ALTER TABLE car_staging 
-CHANGE COLUMN sale_date_temp sale_date DATE;
-
--- Break Dates into Separate Columns
-
-ALTER TABLE car_staging
-ADD COLUMN sale_month INT,
-ADD COLUMN sale_day INT,
-ADD COLUMN sale_year INT;
-
-UPDATE car_staging
-SET 
-  sale_year = YEAR(sale_date),
-  sale_month = MONTH(sale_date),
-  sale_day = DAY(sale_date);
-  
-SELECT 
-  sale_date, sale_year, sale_month, sale_day 
-FROM car_staging 
-LIMIT 10;
-
-SELECT * 
-FROM car_staging;
-
--- Replace unwanted special charachers from column
-
-UPDATE car_staging
-SET engine = REPLACE(engine, 'Ã‚Â', ' ')
-WHERE engine LIKE '%Ã‚Â%';
-
-SELECT DISTINCT engine
-FROM car_staging
-WHERE engine LIKE '%Overhead Camshaft%';
-
-
--- Objective 1: Exploring the Data
-
--- Count the number of car sales by the company
-
-SELECT company,
-	COUNT(*) as company_sales
-FROM car_staging
-GROUP BY company
-ORDER BY company_sales DESC;
-
--- Find the most common body style customer have bought
-
-SELECT company,body_style
-FROM 
-(
-SELECT company, body_style,
-	COUNT(*),
-	RANK() OVER(PARTITION BY body_style 
-	ORDER BY COUNT(*) DESC) AS ranking
-FROM car_staging
-GROUP BY company, body_style
-) as t1
-WHERE ranking = 1;
-
--- List all BMW sales in a specific year (e.g., 2023)
-SELECT * 
-FROM car_staging
-WHERE company = 'BMW'
-AND
-sale_year = 2023;
-
--- What are the top 5 dealer region with the most sales?
-
-SELECT dealer_region,
-COUNT(car_id) as total_sales
-FROM car_staging
-GROUP BY 1
-ORDER BY total_sales
-LIMIT 5;
-
---- Identify the highest paid car sold
-
-SELECT company, model, price_usd
-FROM car_staging
-WHERE price_usd = (SELECT MAX(price_usd) 
-FROM car_staging );
-
--- What is the most sold car model?
-SELECT company, model,
-COUNT(*) AS total_sales
-FROM car_staging
-GROUP BY company, model
-ORDER BY total_sales DESC;
-
--- Highest cars sold in price rang 15,000 USD to 40,000 USD
-
-SELECT 
-    company, 
-    model, 
-    COUNT(*) AS total_sales
-FROM car_staging
-WHERE price_usd BETWEEN 15000 AND 40000
-GROUP BY company, model
-ORDER BY total_sales DESC;
+A clean, standardized dataset ready for analyzing sales trends, dealer performance, and customer demographics.
