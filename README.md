@@ -1,5 +1,3 @@
-## Dataset Description
-
 ## Car Sales Data Cleaning Summary
 
 1. Data Deduplication
