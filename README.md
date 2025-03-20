@@ -77,7 +77,7 @@ Objective 1: Sales Performance
     ORDER BY total_sales DESC  
     LIMIT 5;  
 
-        Insight: Revealed regions with the highest sales activity (e.g., California, Texas).
+        Insight: Revealed regions with the highest sales activity.
 
 Objective 2: Customer Preferences
 
