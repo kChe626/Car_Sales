@@ -17,8 +17,15 @@ This project focuses on cleaning and analyzing car sales data from 2022 to 2023 
     - Busiest days and monthly trends.
     - Revenue and profit calculations, including year-over-year comparisons.
 
-- **Visualization**:
-  - An interactive Tableau dashboard presents key metrics like total sales, model performance, and revenue trends.
+- **Tableau Dashboard**  
+  - An interactive dashboard displays metrics such as:
+    - **CYTD Total Sales** vs. **PYTD Total Sales**  
+    - **Year-over-Year Sales Growth**  
+    - **Total Sales by Company**  
+    - **Car Sold by Month**  
+    - **Body Type Sales**
+    - **Model Price Sold**  
+
 
 ---
 
@@ -83,6 +90,18 @@ Some key SQL queries include:
   ```
 
 ---
+
+## 📊 Tableau Dashboard
+
+Below is a preview of the Tableau dashboard created for this project:
+
+![Car Sales Dashboard]([Car%20Sales%20Dashboard.png](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sales%20Dashboard.png))
+
+**Dashboard Highlights**:
+- **CYTD vs. PYTD Total Sales**: Compares current year-to-date and prior year-to-date sales.  
+- **Monthly Sales Trend**: Shows how sales fluctuate over time.  
+- **Top Companies**: Breaks down which manufacturers or companies are performing best.  
+- **Body Type & Model Price Analysis**: Insights into the types of cars (SUV, Sedan, etc.) and their price ranges.  
 
 ## Acknowledgments
 
