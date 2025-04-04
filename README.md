@@ -91,7 +91,7 @@ Some key SQL queries include:
 
 ---
 
-## 📊 Tableau Dashboard
+## Tableau Dashboard
 
 Below is a preview of the Tableau dashboard created for this project:
 
