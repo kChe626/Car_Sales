@@ -83,3 +83,7 @@ Some key SQL queries include:
   ```
 
 ---
+
+## Acknowledgments
+
+- Car Sales dateset from [https://www.kaggle.com/datasets/missionjee/car-sales-report]
