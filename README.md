@@ -95,9 +95,7 @@ Some key SQL queries include:
 
 Below is a preview of the Tableau dashboard created for this project:
 
-![Car Sales Dashboard]([https://github.com/kChe626/Car_Sales/blob/main/Car%20Sales%20Dashboard.png])
-
-![alt text](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Dashboard.png "Logo Title Text 1")
+![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)  
 
 **Dashboard Highlights**:
 - **CYTD vs. PYTD Total Sales**: Compares current year-to-date and prior year-to-date sales.  
