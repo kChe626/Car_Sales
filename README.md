@@ -125,8 +125,6 @@ ORDER BY revenue_difference_percentage DESC;
 
 ---
 
-## 📂 Acknowledgments
-
 - Dataset source: [Kaggle - Car Sales Report](https://www.kaggle.com/datasets/missionjee/car-sales-report)
 - Tableau Dashboard: [Dashboard - Car Sales](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sale(tableu).twbx)
 - Cleaned Data: [Car Sales Cleaned Data text](https://github.com/kChe626/Car_Sales/blob/main/Car_Sales%20Data%20Cleaning.txt)
