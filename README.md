@@ -38,6 +38,27 @@ This project focuses on cleaning and analyzing car sales data from 2022 to 2023 
 - **Tableau** – for building the dashboard
 
 ---
+### 🔄 Car Sales Data Project Workflow
+
+```mermaid
+flowchart TD
+  A[Raw Car Sales Data] --> B[Import into MySQL]
+  B --> C[Data Cleaning]
+  C --> C1[Remove Duplicates]
+  C --> C2[Fix Null and Blank Fields]
+  C --> C3[Standardize Text and Dates]
+  C --> C4[Convert Date Format]
+  C --> D[Load Cleaned Data]
+  D --> E[Run SQL Analysis]
+  E --> E1[Revenue and Sales Trends]
+  E --> E2[Top Categories and Payment Methods]
+  E --> E3[Monthly and Branch Insights]
+  E --> F[Visualize Insights in Tableau]
+  F --> G[Interactive Dashboard]
+```
+
+
+---
 
 ## 🧮 SQL Analysis Examples
 
