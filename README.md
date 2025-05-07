@@ -1,108 +1,107 @@
-# Car Sales Data Cleaning, SQL Analysis & Tableau Dashboard
 
-This project focuses on cleaning and analyzing car sales data from 2022 to 2023 using SQL and then visualizing key insights in a Tableau dashboard. After detecting and fixing any data quality issues such as duplicates, missing values, or inconsistent fields—the cleaned dataset was loaded into MySQL where SQL queries explored monthly sales trends, top-performing car models, and city-level revenue. Key metrics such as current-year-to-date (CYTD) total sales, prior-year-to-date (PYTD) sales, and year-over-year growth were calculated to highlight overall performance. The Tableau dashboard further refines these insights by displaying metrics like total sales by company, body type breakdown, and model price distribution.
+# 🚗 Car Sales Data Cleaning, SQL Analysis & Tableau Dashboard
 
----
-
-## Project Overview
-
-- **Data Cleaning & Preparation**: 
-  - Raw car sales data is imported into MySQL.
-  - SQL queries are used to remove duplicates, address missing values, and standardize data formats.
-
-- **SQL Analysis**:
-  - Analysis includes:
-    - Payment methods and transaction counts.
-    - Highest-rated categories by branch.
-    - Busiest days and monthly trends.
-    - Revenue and profit calculations, including year-over-year comparisons.
-
-- **Tableau Dashboard**  
-  - An interactive dashboard displays metrics such as:
-    - **CYTD Total Sales** vs. **PYTD Total Sales**  
-    - **Year-over-Year Sales Growth**  
-    - **Total Sales by Company**  
-    - **Car Sold by Month**  
-    - **Body Type Sales**
-    - **Model Price Sold**  
-
+This project focuses on cleaning and analyzing car sales data from 2022 to 2023 using **MySQL** and visualizing key business insights in a **Tableau dashboard**. After detecting and fixing data quality issues like duplicates, missing values, and inconsistent fields, the cleaned dataset was loaded into MySQL. SQL queries were used to explore trends, top-performing car models, and calculate key performance metrics like CYTD and PYTD sales with year-over-year growth. Tableau was then used to build an interactive dashboard highlighting these metrics for better business insights.
 
 ---
 
-## Technologies Used
+## 📊 Project Overview
 
-- **MySQL**: For data cleaning and analysis.
-- **Tableau**: For creating the interactive dashboard.
+### 🧼 Data Cleaning & Preparation
+- Imported raw data into **MySQL**
+- Removed duplicates, handled nulls, and standardized formats using SQL
+
+### 🧠 SQL Analysis
+- Performed analysis on:
+  - Payment methods & transaction counts
+  - Highest-rated categories per branch
+  - Busiest sales days and monthly trends
+  - Year-over-year sales and revenue trends
+
+### 📈 Tableau Dashboard
+- Interactive dashboard includes:
+  - CYTD vs. PYTD Sales
+  - YoY Sales Growth
+  - Sales by Company
+  - Monthly Car Sales
+  - Body Type & Model Price breakdowns
 
 ---
 
+## 🧰 Technologies Used
 
-## SQL Analysis Overview
+- **MySQL** – for data cleaning and analysis  
+- **Tableau** – for building the dashboard
 
-Some key SQL queries include:
+---
 
-- **Payment Methods & Transactions**
-  ```sql
-  SELECT payment_method, COUNT(*) as no_payments, SUM(quantity) as no_qty_sold
+## 🧮 SQL Analysis Examples
+
+### 💳 Payment Methods & Transactions
+```sql
+SELECT payment_method, COUNT(*) AS no_payments, SUM(quantity) AS no_qty_sold
+FROM car_sales
+GROUP BY payment_method;
+```
+
+### ⭐ Highest-Rated Category per Branch
+```sql
+SELECT branch, category, AVG(rating) AS avg_rating
+FROM car_sales
+GROUP BY branch, category
+ORDER BY branch, avg_rating DESC;
+```
+
+### 📅 Busiest Day per Branch
+```sql
+SELECT branch, DATE_FORMAT(STR_TO_DATE(date, '%d/%m/%y'), '%W') AS day_name, COUNT(*) AS no_transactions
+FROM car_sales
+GROUP BY branch, day_name
+ORDER BY branch, no_transactions DESC;
+```
+
+### 📉 Year-over-Year Revenue Decline
+```sql
+WITH revenue_2022 AS (
+  SELECT branch, SUM(total) AS revenue
   FROM car_sales
-  GROUP BY payment_method;
-  ```
-
-- **Highest-Rated Category per Branch**
-  ```sql
-  SELECT branch, category, AVG(rating) as avg_rating
+  WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2022
+  GROUP BY branch
+),
+revenue_2023 AS (
+  SELECT branch, SUM(total) AS revenue
   FROM car_sales
-  GROUP BY branch, category
-  ORDER BY branch, avg_rating DESC;
-  ```
-
-- **Busiest Day per Branch**
-  ```sql
-  SELECT branch, DATE_FORMAT(STR_TO_DATE(`date`, '%d/%m/%y'), '%W') AS day_name, COUNT(*) AS no_transactions
-  FROM car_sales
-  GROUP BY branch, day_name
-  ORDER BY branch, no_transactions DESC;
-  ```
-
-- **Revenue Decrease Year-over-Year**
-  ```sql
-  WITH revenue_2022 AS (
-    SELECT branch, SUM(total) AS revenue
-    FROM car_sales
-    WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2022
-    GROUP BY branch
-  ),
-  revenue_2023 AS (
-    SELECT branch, SUM(total) AS revenue
-    FROM car_sales
-    WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2023
-    GROUP BY branch
-  )
-  SELECT 
-    r2.branch,
-    r2.revenue AS last_year_revenue,
-    r3.revenue AS current_year_revenue,
-    ROUND((r2.revenue - r3.revenue) / r2.revenue * 100, 2) AS revenue_difference_percentage
-  FROM revenue_2022 r2
-  JOIN revenue_2023 r3 ON r2.branch = r3.branch
-  WHERE r2.revenue > r3.revenue
-  ORDER BY revenue_difference_percentage DESC;
-  ```
+  WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2023
+  GROUP BY branch
+)
+SELECT 
+  r2.branch,
+  r2.revenue AS last_year_revenue,
+  r3.revenue AS current_year_revenue,
+  ROUND((r2.revenue - r3.revenue) / r2.revenue * 100, 2) AS revenue_difference_percentage
+FROM revenue_2022 r2
+JOIN revenue_2023 r3 ON r2.branch = r3.branch
+WHERE r2.revenue > r3.revenue
+ORDER BY revenue_difference_percentage DESC;
+```
 
 ---
 
-## Tableau Dashboard
+## 📊 Tableau Dashboard
 
-Below is a preview of the Tableau dashboard created for this project:
+![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)
 
-![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)  
+### Dashboard Highlights
+- **CYTD vs. PYTD Total Sales**
+- **Monthly Sales Trend**
+- **Top Companies by Revenue**
+- **Car Body Type Performance**
+- **Model Price Distribution**
 
-**Dashboard Highlights**:
-- **CYTD vs. PYTD Total Sales**: Compares current year-to-date and prior year-to-date sales.  
-- **Monthly Sales Trend**: Shows how sales fluctuate over time.  
-- **Top Companies**: Breaks down which manufacturers or companies are performing best.  
-- **Body Type & Model Price Analysis**: Insights into the types of cars (SUV, Sedan, etc.) and their price ranges.  
+---
 
-## Acknowledgments
+## 📂 Acknowledgments
 
-- Car Sales dateset from [https://www.kaggle.com/datasets/missionjee/car-sales-report]
+- Dataset source: [Kaggle - Car Sales Report](https://www.kaggle.com/datasets/missionjee/car-sales-report)
+- Tableau Dashboard: [Dashboard - Car Sales](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sale(tableu).twbx)
+- Cleaned Data: [Car Sales Cleaned Data text](https://github.com/kChe626/Car_Sales/blob/main/Car_Sales%20Data%20Cleaning.txt)
