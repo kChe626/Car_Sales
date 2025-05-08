@@ -3,26 +3,26 @@
 ![Tableau](https://img.shields.io/badge/Tableau-E97627?style=for-the-badge&logo=Tableau&logoColor=white)
 
 
-# 🚗 Car Sales Data Cleaning, SQL Analysis & Tableau Dashboard
+#  Car Sales Data Cleaning, SQL Analysis & Tableau Dashboard
 
 This project focuses on cleaning and analyzing car sales data from 2022 to 2023 using **MySQL** and visualizing key business insights in a **Tableau dashboard**. After detecting and fixing data quality issues like duplicates, missing values, and inconsistent fields, the cleaned dataset was loaded into MySQL. SQL queries were used to explore trends, top-performing car models, and calculate key performance metrics like CYTD and PYTD sales with year-over-year growth. Tableau was then used to build an interactive dashboard highlighting these metrics for better business insights.
 
 ---
 
-## 📊 Project Overview
+##  Project Overview
 
-### 🧼 Data Cleaning & Preparation
+###  Data Cleaning & Preparation
 - Imported raw data into **MySQL**
 - Removed duplicates, handled nulls, and standardized formats using SQL
 
-### 🧠 SQL Analysis
+###  SQL Analysis
 - Performed analysis on:
   - Payment methods & transaction counts
   - Highest-rated categories per branch
   - Busiest sales days and monthly trends
   - Year-over-year sales and revenue trends
 
-### 📈 Tableau Dashboard
+###  Tableau Dashboard
 - Interactive dashboard includes:
   - CYTD vs. PYTD Sales
   - YoY Sales Growth
@@ -32,13 +32,13 @@ This project focuses on cleaning and analyzing car sales data from 2022 to 2023 
 
 ---
 
-## 🧰 Technologies Used
+##  Technologies Used
 
 - **MySQL** – for data cleaning and analysis  
 - **Tableau** – for building the dashboard
 
 ---
-### 🔄 Car Sales Data Project Workflow
+###  Car Sales Data Project Workflow
 
 ```mermaid
 flowchart TD
@@ -60,16 +60,16 @@ flowchart TD
 
 ---
 
-## 🧮 SQL Analysis Examples
+##  SQL Analysis Examples
 
-### 💳 Payment Methods & Transactions
+###  Payment Methods & Transactions
 ```sql
 SELECT payment_method, COUNT(*) AS no_payments, SUM(quantity) AS no_qty_sold
 FROM car_sales
 GROUP BY payment_method;
 ```
 
-### ⭐ Highest-Rated Category per Branch
+###  Highest-Rated Category per Branch
 ```sql
 SELECT branch, category, AVG(rating) AS avg_rating
 FROM car_sales
@@ -77,7 +77,7 @@ GROUP BY branch, category
 ORDER BY branch, avg_rating DESC;
 ```
 
-### 📅 Busiest Day per Branch
+###  Busiest Day per Branch
 ```sql
 SELECT branch, DATE_FORMAT(STR_TO_DATE(date, '%d/%m/%y'), '%W') AS day_name, COUNT(*) AS no_transactions
 FROM car_sales
@@ -85,7 +85,7 @@ GROUP BY branch, day_name
 ORDER BY branch, no_transactions DESC;
 ```
 
-### 📉 Year-over-Year Revenue Decline
+###  Year-over-Year Revenue Decline
 ```sql
 WITH revenue_2022 AS (
   SELECT branch, SUM(total) AS revenue
@@ -112,7 +112,7 @@ ORDER BY revenue_difference_percentage DESC;
 
 ---
 
-## 📊 Tableau Dashboard
+##  Tableau Dashboard
 
 ![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)
 
