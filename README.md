@@ -8,107 +8,126 @@
 This project focuses on cleaning and analyzing car sales data from 2022 to 2023 using **MySQL** and visualizing key business insights in a **Tableau dashboard**. After detecting and fixing data quality issues like duplicates, missing values, and inconsistent fields, the cleaned dataset was loaded into MySQL. SQL queries were used to explore trends, top-performing car models, and calculate key performance metrics like CYTD and PYTD sales with year-over-year growth. Tableau was then used to build an interactive dashboard highlighting these metrics for better business insights.
 
 ---
+## Dataset
+The raw dataset contained:
 
-##  Project Overview
+    Car ID — unique identifier for each car
 
-###  Data Cleaning & Preparation
-- Imported raw data into **MySQL**
-- Removed duplicates, handled nulls, and standardized formats using SQL
+    Date — date of sale (string format)
 
-###  SQL Analysis
-- Performed analysis on:
-  - Payment methods & transaction counts
-  - Highest-rated categories per branch
-  - Busiest sales days and monthly trends
-  - Year-over-year sales and revenue trends
+    Customer Name — name of the customer
 
-###  Tableau Dashboard
-- Interactive dashboard includes:
-  - CYTD vs. PYTD Sales
-  - YoY Sales Growth
-  - Sales by Company
-  - Monthly Car Sales
-  - Body Type & Model Price breakdowns
+    Gender, Annual Income, Dealer Name, Dealer Region, Company, Model, Engine, Transmission, Color, Price ($), Dealer No, Body Style, Phone
 
 ---
 
-##  Technologies Used
+## Cleaning Process
 
-- **MySQL** – for data cleaning and analysis  
-- **Tableau** – for building the dashboard
-
----
-###  Car Sales Data Project Workflow
-
-```mermaid
-flowchart TD
-  A[Raw Car Sales Data] --> B[Import into MySQL]
-  B --> C[Data Cleaning]
-  C --> C1[Remove Duplicates]
-  C --> C2[Fix Null and Blank Fields]
-  C --> C3[Standardize Text and Dates]
-  C --> C4[Convert Date Format]
-  C --> D[Load Cleaned Data]
-  D --> E[Run SQL Analysis]
-  E --> E1[Revenue and Sales Trends]
-  E --> E2[Top Categories and Payment Methods]
-  E --> E3[Monthly and Branch Insights]
-  E --> F[Visualize Insights in Tableau]
-  F --> G[Interactive Dashboard]
+### Created staging tables
+```sql
+CREATE TABLE car_staging LIKE car_sales;
+INSERT INTO car_staging SELECT * FROM car_sales;
 ```
+
+### Renamed columns to snake_case
+I replaced spaces and special characters for cleaner SQL:
+```sql
+ALTER TABLE car_staging
+CHANGE `Car ID` car_id VARCHAR(50),
+CHANGE `Date` sale_date TEXT,
+CHANGE `Customer Name` customer_name VARCHAR(100),
+CHANGE `Price ($)` price_usd INT,
+...;
+```
+### Standardized text values
+```sql
+UPDATE car_staging
+SET dealer_name = LOWER(TRIM(dealer_name)),
+    customer_name = LOWER(TRIM(customer_name)),
+    engine = LOWER(TRIM(engine)),
+    ...;
+```
+
+### Removed duplicates
+```sql
+WITH duplicate_cte AS (
+    SELECT *,
+           ROW_NUMBER() OVER (
+               PARTITION BY car_id, sale_date, customer_name, annual_income,
+                            dealer_name, phone
+           ) AS row_num
+    FROM car_staging
+)
+DELETE FROM car_staging
+WHERE car_id IN (
+    SELECT car_id FROM (
+        SELECT car_id, row_num
+        FROM duplicate_cte
+        WHERE row_num > 1
+    ) sub
+);
+```
+
+### Converted sale_date to DATE type
+```sql
+ALTER TABLE car_staging ADD COLUMN sale_date_temp DATE;
+UPDATE car_staging SET sale_date_temp = STR_TO_DATE(sale_date, '%m/%d/%Y');
+ALTER TABLE car_staging DROP COLUMN sale_date;
+ALTER TABLE car_staging CHANGE sale_date_temp sale_date DATE;
+
+ALTER TABLE car_staging
+ADD COLUMN sale_year INT,
+ADD COLUMN sale_month INT,
+ADD COLUMN sale_day INT;
+
+UPDATE car_staging
+SET sale_year = YEAR(sale_date),
+    sale_month = MONTH(sale_date),
+    sale_day = DAY(sale_date);
+```
+
+### Removed unwanted encoding characters
+```sql
+UPDATE car_staging
+SET engine = TRIM(REPLACE(engine, 'Ã‚Â', ''))
+WHERE engine LIKE '%Ã‚Â%';
+```
+[See full cleaning code](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
 
 
 ---
 
 ##  SQL Analysis Examples
 
-###  Payment Methods & Transactions
+###  Top-Selling Car Models
 ```sql
 SELECT payment_method, COUNT(*) AS no_payments, SUM(quantity) AS no_qty_sold
 FROM car_sales
 GROUP BY payment_method;
 ```
 
-###  Highest-Rated Category per Branch
+###  Revenue by Dealer Region
 ```sql
-SELECT branch, category, AVG(rating) AS avg_rating
-FROM car_sales
-GROUP BY branch, category
-ORDER BY branch, avg_rating DESC;
-```
-
-###  Busiest Day per Branch
-```sql
-SELECT branch, DATE_FORMAT(STR_TO_DATE(date, '%d/%m/%y'), '%W') AS day_name, COUNT(*) AS no_transactions
-FROM car_sales
-GROUP BY branch, day_name
-ORDER BY branch, no_transactions DESC;
-```
-
-###  Year-over-Year Revenue Decline
-```sql
-WITH revenue_2022 AS (
-  SELECT branch, SUM(total) AS revenue
-  FROM car_sales
-  WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2022
-  GROUP BY branch
-),
-revenue_2023 AS (
-  SELECT branch, SUM(total) AS revenue
-  FROM car_sales
-  WHERE EXTRACT(YEAR FROM STR_TO_DATE(date, '%d/%m/%y')) = 2023
-  GROUP BY branch
-)
 SELECT 
-  r2.branch,
-  r2.revenue AS last_year_revenue,
-  r3.revenue AS current_year_revenue,
-  ROUND((r2.revenue - r3.revenue) / r2.revenue * 100, 2) AS revenue_difference_percentage
-FROM revenue_2022 r2
-JOIN revenue_2023 r3 ON r2.branch = r3.branch
-WHERE r2.revenue > r3.revenue
-ORDER BY revenue_difference_percentage DESC;
+    dealer_region,
+    SUM(price_usd) AS total_revenue
+FROM car_staging
+GROUP BY dealer_region
+ORDER BY total_revenue DESC;
 ```
+
+###  Monthly Sales Trend
+```sql
+SELECT 
+    YEAR(sale_date) AS sale_year,
+    MONTH(sale_date) AS sale_month,
+    COUNT(*) AS cars_sold
+FROM car_staging
+GROUP BY sale_year, sale_month
+ORDER BY sale_year, sale_month;
+```
+
+[See full analysis code](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)
 
 ---
 
@@ -124,7 +143,14 @@ ORDER BY revenue_difference_percentage DESC;
 - **Model Price Distribution**
 
 ---
+## Files
+[car_sales_cleaned — SQL code for cleaning](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
 
-- Dataset source: [Kaggle - Car Sales Report](https://www.kaggle.com/datasets/missionjee/car-sales-report)
-- Tableau Dashboard: [Dashboard - Car Sales](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sale(tableu).twbx)
-- Cleaned Data: [Car Sales Cleaned Data text](https://github.com/kChe626/Car_Sales/blob/main/Car_Sales%20Data%20Cleaning.txt)
+[sql_car_sales_analysis — MySQL anaylsis](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)
+
+[Power_BI_dashboard](https://github.com/kChe626/Melbourne-Housing-Project/blob/main/Power_Bi_melb_data.pbix)
+
+
+## Dataset Source
+- Car Sales dataset from [https://www.kaggle.com/datasets/missionjee/car-sales-report]
+
