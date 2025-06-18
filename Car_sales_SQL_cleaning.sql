@@ -1,4 +1,4 @@
--- 1️⃣ Create staging table to protect raw data
+-- Create staging table to protect raw data
 CREATE TABLE car_staging LIKE car_sales;
 
 INSERT INTO car_staging
