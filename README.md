@@ -142,6 +142,7 @@ ORDER BY sale_year, sale_month;
 - **Car Body Type Performance**
 - **Model Price Distribution**
 
+[Download full Tableau_dashboard](https://github.com/kChe626/Melbourne-Housing-Project/blob/main/Power_Bi_melb_data.pbix)
 ---
 ## Files
 [car_sales_cleaned — SQL code for cleaning](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
