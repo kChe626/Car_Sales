@@ -12,7 +12,7 @@ This project focuses on cleaning, analyzing, and visualizing US car sales data u
 
 The raw dataset contained:
 
-- Source: car_data.csv
+- Source: [car_data.csv](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sales.xlsx%20-%20car_data.csv)
 - Columns: car_id, sale_date, customer_name, gender, annual_income, dealer_name, company, model, engine, transmission, color, price_usd, dealer_no, body_style, phone, dealer_region
 
 ## Objectives
