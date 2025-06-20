@@ -1,5 +1,10 @@
+-- US Car Sales Data Cleaning SQL Script
+-- Description: Cleans and prepares car sales dataset for analysis
+
 -- Create staging table to protect raw data
 CREATE TABLE car_staging LIKE car_sales;
+
+-- Insert raw data into staging
 
 INSERT INTO car_staging
 SELECT *
@@ -88,5 +93,9 @@ UPDATE car_staging
 SET engine = REPLACE(engine, 'ã‚â', '')
 WHERE engine LIKE '%ã‚â%';
 
--- Review
-SELECT * FROM car_staging LIMIT 10;
+-- Final validation
+SELECT COUNT(*) AS cleaned_row_count 
+FROM car_staging;
+
+SELECT MIN(sale_date), MAX(sale_date) 
+FROM car_staging;
