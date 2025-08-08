@@ -1,148 +1,120 @@
+# **US Car Sales — SQL Cleaning, Analysis & Tableau Dashboard**  
+![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)  ![Tableau](https://img.shields.io/badge/Tableau-E97627?style=for-the-badge&logo=Tableau&logoColor=white)
 
-![MySQL](https://img.shields.io/badge/mysql-%2300f.svg?style=for-the-badge&logo=mysql&logoColor=white)
-![Tableau](https://img.shields.io/badge/Tableau-E97627?style=for-the-badge&logo=Tableau&logoColor=white)
+## **Overview**  
+This project focuses on **cleaning, analyzing, and visualizing** U.S. car sales data using **MySQL** and **Tableau**.  
+The objective was to transform raw sales records into meaningful insights on sales performance, regional trends, and buyer profiles.
 
+---
 
-#  US Car Sales — SQL Cleaning, Analysis, and Tableau Dashboard
+## **Dataset**
+- **Source:** [car_data.csv](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sales.xlsx%20-%20car_data.csv)  
+- **Columns:** car_id, sale_date, customer_name, gender, annual_income, dealer_name, company, model, engine, transmission, color, price_usd, dealer_no, body_style, phone, dealer_region
 
-This project focuses on cleaning, analyzing, and visualizing US car sales data using SQL and Tableau. The goal is to transform raw sales records into meaningful insights that highlight trends, performance, and buyer profiles.
+---
 
-
-## Dataset
-
-The raw dataset contained:
-
-- Source: [car_data.csv](https://github.com/kChe626/Car_Sales/blob/main/Car%20Sales.xlsx%20-%20car_data.csv)
-- Columns: car_id, sale_date, customer_name, gender, annual_income, dealer_name, company, model, engine, transmission, color, price_usd, dealer_no, body_style, phone, dealer_region
-
-## Objectives
-
-- Clean and standardize the dataset for analysis
+## **Data Cleaning Process (SQL)**
+**Objectives:**
 - Remove duplicate records
-- Convert date fields to proper SQL DATE type
-- Analyze sales trends and performance metrics
-- Visualize results in Tableau
+- Standardize text fields
+- Convert sale_date to proper DATE type
+- Prepare dataset for analysis
 
-## Key SQL Techniques Used
+**Key SQL Techniques:**
+- `ROW_NUMBER()` for duplicate detection  
+- `STR_TO_DATE()` for date conversion  
+- `LOWER()` and `TRIM()` for text standardization
 
-- ROW_NUMBER() for duplicate detection
-- STR_TO_DATE() for date conversion
-- LOWER(), TRIM() for text standardization
-- Aggregations for revenue, volume, and trend analysis
-
-## Data Cleaning with SQL
-
-See [Car_Sales_SQL_Cleaning.sql ](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)for the full, well-commented SQL script.
-
-## Example snippets
-
-Standardize text fields
+**Example Snippets:**  
 ```sql
+-- Standardize text fields
 UPDATE car_staging
 SET 
     dealer_name = LOWER(TRIM(dealer_name)),
-    customer_name = LOWER(TRIM(customer_name)),
     company = LOWER(TRIM(company)),
     model = LOWER(TRIM(model)),
     engine = LOWER(TRIM(engine)),
     transmission = LOWER(TRIM(transmission)),
     color = LOWER(TRIM(color)),
     dealer_region = LOWER(TRIM(dealer_region));
-```
-Identify and remove duplicates
-```sql
+
+-- Identify duplicates
 WITH duplicate_cte AS (
     SELECT *,
            ROW_NUMBER() OVER (
-               PARTITION BY car_id, sale_date, customer_name, annual_income,
-                            dealer_name, phone
+               PARTITION BY car_id, sale_date, customer_name, annual_income, dealer_name, phone
            ) AS row_num
     FROM car_staging
 )
-DELETE FROM car_staging
-WHERE car_id IN (
-    SELECT car_id FROM (
-        SELECT car_id, row_num
-        FROM (
-            SELECT car_id,
-                   ROW_NUMBER() OVER (
-                       PARTITION BY car_id, sale_date, customer_name, annual_income,
-                                    dealer_name, phone
-                   ) AS row_num
-            FROM car_staging
-        ) t
-        WHERE row_num > 1
-    ) sub
-);
+SELECT * FROM duplicate_cte WHERE row_num > 1;
+
+-- Convert date strings to DATE type
+UPDATE car_staging
+SET sale_date = STR_TO_DATE(sale_date, '%m/%d/%Y');
 ```
 
-Convert sale_date to DATE type
+**Full Cleaning Script:** [Car_sales_SQL_cleaning.sql](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
+
+---
+
+## **SQL Analysis**
+**Objectives:**
+- Identify top-selling models and companies
+- Analyze regional sales trends
+- Track monthly sales volume
+- Evaluate revenue contribution by region
+
+**Example Queries:**
 ```sql
-SET sale_date_temp = STR_TO_DATE(sale_date, '%m/%d/%Y');
-```
-
-[See full cleaning code](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
-
-## SQL Analysis Script
-
-See [Car_Sales_SQL_Analysis.sql ](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)for the full, well-commented SQL script.
-
-
-## Example SQL Analysis Snippets
-
-Top-Selling Car Models
-```sql
-SELECT payment_method, COUNT(*) AS no_payments, SUM(quantity) AS no_qty_sold
+-- Top-selling car models
+SELECT model, COUNT(*) AS total_sold
 FROM car_sales
-GROUP BY payment_method;
-```
-Revenue by Dealer Region
-```sql
-SELECT 
-    dealer_region,
-    SUM(price_usd) AS total_revenue
-FROM car_staging
+GROUP BY model
+ORDER BY total_sold DESC
+LIMIT 5;
+
+-- Revenue by dealer region
+SELECT dealer_region, SUM(price_usd) AS total_revenue
+FROM car_sales
 GROUP BY dealer_region
 ORDER BY total_revenue DESC;
-```
 
-Monthly Sales Trend
-```sql
-SELECT 
-    YEAR(sale_date) AS sale_year,
-    MONTH(sale_date) AS sale_month,
-    COUNT(*) AS cars_sold
-FROM car_staging
+-- Monthly sales trend
+SELECT YEAR(sale_date) AS sale_year, MONTH(sale_date) AS sale_month, COUNT(*) AS cars_sold
+FROM car_sales
 GROUP BY sale_year, sale_month
 ORDER BY sale_year, sale_month;
 ```
 
-[See full analysis code](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)
+**Full Analysis Script:** [Car_sales_SQL_analysis.sql](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)
 
 ---
 
-## Tableau Dashboard
+## **Key Insights**
+- Certain regions outperform in total revenue despite lower sales volume — higher-priced vehicles dominate those areas.  
+- Seasonal spikes in sales suggest promotional or year-end clearance periods.  
+- A small number of models account for a significant share of sales.
 
-![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)
+---
 
-### Dashboard Highlights
-- CYTD vs. PYTD Total Sales
-- Monthly Sales Trend
-- Top Companies by Revenue
-- Car Body Type Performance
-- Model Price Distribution
+## **Visualization (Tableau)**
+An **interactive Tableau dashboard** was created to visualize sales performance.  
 
-[Download full Tableau_dashboard](https://github.com/kChe626/Melbourne-Housing-Project/blob/main/Power_Bi_melb_data.pbix)
+**Dashboard Features:**
+- CYTD vs PYTD total sales comparison
+- Monthly sales trends
+- Top companies by revenue
+- Body style performance
+- Price distribution by model
 
+![Dashboard Overview](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)  
 
-## Files
-[car_sales_cleaned — SQL code for cleaning](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)
+**Download Tableau Dashboard:** [car_sales_dashboard.twbx](https://github.com/kChe626/Melbourne-Housing-Project/blob/main/Power_Bi_melb_data.pbix)
 
-[sql_car_sales_analysis — MySQL anaylsis](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)
+---
 
-[Power_BI_dashboard](https://github.com/kChe626/Melbourne-Housing-Project/blob/main/Power_Bi_melb_data.pbix)
-
-
-## Dataset Source
-- Car Sales dataset from [https://www.kaggle.com/datasets/missionjee/car-sales-report]
+## **Files**
+- [SQL Cleaning Script](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)  
+- [SQL Analysis Script](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)  
+- [Tableau Dashboard GIF](https://github.com/kChe626/Snapshots/blob/main/Car%20Sales%20Tab.gif)  
 
