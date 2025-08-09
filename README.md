@@ -113,6 +113,11 @@ An **interactive Tableau dashboard** was created to visualize sales performance.
 
 ---
 
+## **Business Relevance**
+The analysis provides sales and operations managers with regional performance metrics, revenue distribution, and product mix trends. These insights inform dealer allocation, sales forecasting, and inventory optimization strategies, improving sales efficiency and operational planning.
+
+---
+
 ## **Files**
 - [SQL Cleaning Script](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_cleaning.sql)  
 - [SQL Analysis Script](https://github.com/kChe626/Car_Sales/blob/main/Car_sales_SQL_analysis.sql)  
